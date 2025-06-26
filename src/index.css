@@ -1,0 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap");
+
+body {
+  font-family: "Montserrat", sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 218 43% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 218 43% 22%;
+
+    --popover: 208 46% 97%;
+    --popover-foreground: 218 43% 20%;
+
+    --primary: 202 83% 34%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 61% 95%;
+    --secondary-foreground: 218 43% 21%;
+
+    --muted: 210 36% 94%;
+    --muted-foreground: 218 22% 32%;
+
+    --accent: 191 75% 92%;
+    --accent-foreground: 218 43% 18%;
+
+    --destructive: 355 66% 54%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 38% 90%;
+    --input: 210 38% 94%;
+    --ring: 202 83% 34%;
+    --radius: 0.75rem;
+
+    --chart-1: 202 83% 34%;
+    --chart-2: 191 75% 44%;
+    --chart-3: 210 38% 64%;
+    --chart-4: 210 36% 78%;
+    --chart-5: 218 43% 18%;
+  }
+
+  .dark {
+    --background: 218 44% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 218 36% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 218 36% 10%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 202 83% 48%;
+    --primary-foreground: 218 44% 8%;
+
+    --secondary: 218 28% 16%;
+    --secondary-foreground: 202 33% 89%;
+
+    --muted: 218 18% 14%;
+    --muted-foreground: 202 20% 70%;
+
+    --accent: 191 68% 20%;
+    --accent-foreground: 202 33% 98%;
+
+    --destructive: 355 66% 54%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 218 26% 18%;
+    --input: 218 18% 11%;
+    --ring: 202 83% 48%;
+
+    --chart-1: 202 83% 48%;
+    --chart-2: 191 68% 36%;
+    --chart-3: 218 26% 20%;
+    --chart-4: 218 36% 15%;
+    --chart-5: 202 33% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
