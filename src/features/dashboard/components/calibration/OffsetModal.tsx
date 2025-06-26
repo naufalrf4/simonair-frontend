@@ -285,7 +285,7 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
         }
       });
 
-      const client = mqtt.connect('ws://mqtt.elsaiot.web.id:9001', {
+      const client = mqtt.connect('wss://mqtt-ws.elsaiot.web.id', {
         username: 'elsa-user',
         password: '3lsaTekom.',
         clientId: `offset_${deviceId}_${Date.now()}`,

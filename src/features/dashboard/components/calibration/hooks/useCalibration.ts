@@ -21,7 +21,7 @@ export const useCalibration = (
 
   // MQTT Configuration
   const MQTT_CONFIG = {
-    url: 'ws://mqtt.elsaiot.web.id:9001',
+    url: 'wss://mqtt-ws.elsaiot.web.id',
     options: {
       username: 'elsa-user',
       password: '3lsaTekom.',
