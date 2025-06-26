@@ -58,6 +58,7 @@ const DOCalibration: React.FC<DOCalibrationProps> = ({
 }) => {
   const [calibrationMode, setCalibrationMode] = useState<'single' | 'double'>('single');
   const [calibrationDone, setCalibrationDone] = useState(false);
+  const [showFormula, setShowFormula] = useState(false);
   
   // Two-point calibration state
   const [twoPointStep, setTwoPointStep] = useState<1 | 2>(1);
@@ -111,6 +112,17 @@ const DOCalibration: React.FC<DOCalibrationProps> = ({
     const mgL = (voltage_mV * sat) / (vSat * 1000.0);
     return Math.max(0, Math.min(20, mgL)); // Constrain 0-20 mg/L
   };
+
+  // Update formula visibility based on calibration state
+  React.useEffect(() => {
+    if (calibrationMode === 'single' && currentVoltage > 0) {
+      setShowFormula(true);
+    } else if (calibrationMode === 'double' && point1 && point2) {
+      setShowFormula(true);
+    } else {
+      setShowFormula(false);
+    }
+  }, [calibrationMode, currentVoltage, point1, point2]);
 
   // Validate calibration inputs
   const canCalibrate = () => {
@@ -236,8 +248,7 @@ const DOCalibration: React.FC<DOCalibrationProps> = ({
           Kalibrasi Sensor DO (Dissolved Oxygen)
         </h3>
         <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-          Kalibrasi sensor oksigen terlarut dengan lookup table saturasi 
-          dan interpolasi linear untuk akurasi tinggi.
+          Kalibrasi sensor oksigen terlarut dengan lookup table saturasi
         </p>
       </div>
 
@@ -301,187 +312,6 @@ const DOCalibration: React.FC<DOCalibrationProps> = ({
               Update setiap detik
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* DO Algorithm Explanation */}
-      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Algoritma Perhitungan DO
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Saturation Lookup Table */}
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <div className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              1. Lookup Table Saturasi
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-mono bg-blue-50 p-3 rounded border">
-                  <span className="text-blue-700">
-                    sat = DO_Table[constrain(temp, 0, 40)]
-                  </span>
-                </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  Tabel 41 nilai saturasi dari 0-40°C
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-mono bg-green-50 p-3 rounded border">
-                  <span className="text-green-700">
-                    sat = {satFromTable.toFixed(0)} (pada {currentTemp.toFixed(1)}°C)
-                  </span>
-                </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  Nilai saturasi untuk suhu saat ini
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Uncalibrated Formula */}
-          <div className="p-4 bg-white rounded-lg border border-orange-200">
-            <div className="text-lg font-bold text-gray-800 mb-3">
-              2. Formula Tanpa Kalibrasi
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded border-2 border-orange-200 mb-4">
-              <div className="text-xl font-mono font-bold text-orange-700">
-                DO = (voltage × 6.5) ÷ 1000
-              </div>
-              <div className="text-sm text-orange-600 mt-2">
-                Formula sederhana untuk estimasi awal
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-mono text-orange-700">
-                DO uncalibrated = {uncalibratedDO.toFixed(3)} mg/L
-              </div>
-            </div>
-          </div>
-
-          {/* Calibrated Formula */}
-          <div className="p-4 bg-white rounded-lg border border-green-200">
-            <div className="text-lg font-bold text-gray-800 mb-3">
-              3. Formula Terkalibrasi
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded border-2 border-green-200 mb-4">
-              <div className="text-xl font-mono font-bold text-green-700">
-                DO = (voltage × sat) ÷ (vSat × 1000)
-              </div>
-              <div className="text-sm text-green-600 mt-2">
-                Dimana vSat = voltage saturasi dari kalibrasi
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                <div className="text-sm font-medium text-blue-800">Current Voltage</div>
-                <div className="font-mono text-blue-700 text-lg">{currentVoltage.toFixed(2)} mV</div>
-              </div>
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded">
-                <div className="text-sm font-medium text-purple-800">Saturation Value</div>
-                <div className="font-mono text-purple-700 text-lg">{satFromTable}</div>
-              </div>
-              <div className="p-3 bg-green-50 border border-green-200 rounded">
-                <div className="text-sm font-medium text-green-800">Result</div>
-                <div className="font-mono text-green-700 text-lg">{calibratedDO.toFixed(3)} mg/L</div>
-              </div>
-            </div>
-          </div>
-
-          {/* vSat Calculation */}
-          <div className="p-4 bg-white rounded-lg border border-indigo-200">
-            <div className="text-lg font-bold text-gray-800 mb-3">
-              4. Perhitungan vSat (Voltage Saturasi)
-            </div>
-            
-            {/* Single Point Mode */}
-            <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded">
-              <div className="font-medium text-indigo-800 mb-2">Single Point Mode:</div>
-              <div className="text-sm font-mono bg-white p-2 rounded border">
-                <span className="text-indigo-700">vSat = cal1_v</span>
-              </div>
-              <div className="text-xs text-indigo-600 mt-1">
-                Menggunakan satu titik kalibrasi (udara jenuh)
-              </div>
-            </div>
-
-            {/* Two Point Mode */}
-            <div className="p-3 bg-purple-50 border border-purple-200 rounded">
-              <div className="font-medium text-purple-800 mb-2">Two Point Mode:</div>
-              <div className="text-sm font-mono bg-white p-2 rounded border">
-                <span className="text-purple-700">
-                  vSat = cal1_v + ((T - cal1_t) × (cal2_v - cal1_v)) ÷ (cal2_t - cal1_t)
-                </span>
-              </div>
-              <div className="text-xs text-purple-600 mt-1">
-                Interpolasi linear antara dua titik kalibrasi
-              </div>
-            </div>
-
-            {/* Current Calculation Preview */}
-            {(point1 || calibrationMode === 'single') && (
-              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
-                <div className="font-medium text-gray-800 mb-2">Perhitungan saat ini:</div>
-                {calibrationMode === 'single' ? (
-                  <div className="text-sm">
-                    <span className="text-gray-600">vSat = </span>
-                    <span className="font-mono text-blue-700">{currentVoltage.toFixed(2)} mV</span>
-                    <span className="text-gray-600"> (single point)</span>
-                  </div>
-                ) : point1 && point2 ? (
-                  <div className="text-sm space-y-1">
-                    <div>
-                      <span className="text-gray-600">vSat = </span>
-                      <span className="font-mono text-purple-700">
-                        {point1.voltage.toFixed(2)} + (({currentTemp.toFixed(1)} - {point1.temp.toFixed(1)}) × ({point2.voltage.toFixed(2)} - {point1.voltage.toFixed(2)})) ÷ ({point2.temp.toFixed(1)} - {point1.temp.toFixed(1)})
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">vSat = </span>
-                      <span className="font-mono text-green-700">
-                        {(point1.voltage + ((currentTemp - point1.temp) * (point2.voltage - point1.voltage)) / (point2.temp - point1.temp)).toFixed(2)} mV
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    Menunggu point kalibrasi...
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Final Calculation Summary */}
-          {(point1 || calibrationMode === 'single') && (
-            <div className="p-4 bg-white rounded-lg border border-emerald-200">
-              <div className="text-lg font-bold text-gray-800 mb-3">
-                5. Hasil Perhitungan Final
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm text-gray-600">Uncalibrated:</div>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {uncalibratedDO.toFixed(3)} mg/L
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600">Calibrated:</div>
-                  <div className="text-2xl font-bold text-emerald-600">
-                    {calibratedDO.toFixed(3)} mg/L
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 text-xs text-gray-500">
-                Range: 0-20 mg/L (constrained automatically)
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -691,6 +521,189 @@ const DOCalibration: React.FC<DOCalibrationProps> = ({
               <li>Tunggu pembacaan voltage stabil</li>
               <li>Klik "Kirim Kalibrasi" untuk menyimpan kalibrasi udara jenuh</li>
             </ol>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* DO Algorithm Explanation - Only show when we have calibration data */}
+      {showFormula && (
+        <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Algoritma Perhitungan DO
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Saturation Lookup Table */}
+            <div className="p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                1. Lookup Table Saturasi
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-mono bg-blue-50 p-3 rounded border">
+                    <span className="text-blue-700">
+                      sat = DO_Table[constrain(temp, 0, 40)]
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Tabel 41 nilai saturasi dari 0-40°C
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-mono bg-green-50 p-3 rounded border">
+                    <span className="text-green-700">
+                      sat = {satFromTable.toFixed(0)} (pada {currentTemp.toFixed(1)}°C)
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Nilai saturasi untuk suhu saat ini
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Uncalibrated Formula */}
+            <div className="p-4 bg-white rounded-lg border border-orange-200">
+              <div className="text-lg font-bold text-gray-800 mb-3">
+                2. Formula Tanpa Kalibrasi
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded border-2 border-orange-200 mb-4">
+                <div className="text-xl font-mono font-bold text-orange-700">
+                  DO = (voltage × 6.5) ÷ 1000
+                </div>
+                <div className="text-sm text-orange-600 mt-2">
+                  Formula sederhana untuk estimasi awal
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-mono text-orange-700">
+                  DO uncalibrated = {uncalibratedDO.toFixed(3)} mg/L
+                </div>
+              </div>
+            </div>
+
+            {/* Calibrated Formula */}
+            <div className="p-4 bg-white rounded-lg border border-green-200">
+              <div className="text-lg font-bold text-gray-800 mb-3">
+                3. Formula Terkalibrasi
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded border-2 border-green-200 mb-4">
+                <div className="text-xl font-mono font-bold text-green-700">
+                  DO = (voltage × sat) ÷ (vSat × 1000)
+                </div>
+                <div className="text-sm text-green-600 mt-2">
+                  Dimana vSat = voltage saturasi dari kalibrasi
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                  <div className="text-sm font-medium text-blue-800">Current Voltage</div>
+                  <div className="font-mono text-blue-700 text-lg">{currentVoltage.toFixed(2)} mV</div>
+                </div>
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded">
+                  <div className="text-sm font-medium text-purple-800">Saturation Value</div>
+                  <div className="font-mono text-purple-700 text-lg">{satFromTable}</div>
+                </div>
+                <div className="p-3 bg-green-50 border border-green-200 rounded">
+                  <div className="text-sm font-medium text-green-800">Result</div>
+                  <div className="font-mono text-green-700 text-lg">{calibratedDO.toFixed(3)} mg/L</div>
+                </div>
+              </div>
+            </div>
+
+            {/* vSat Calculation */}
+            <div className="p-4 bg-white rounded-lg border border-indigo-200">
+              <div className="text-lg font-bold text-gray-800 mb-3">
+                4. Perhitungan vSat (Voltage Saturasi)
+              </div>
+              
+              {/* Single Point Mode */}
+              <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded">
+                <div className="font-medium text-indigo-800 mb-2">Single Point Mode:</div>
+                <div className="text-sm font-mono bg-white p-2 rounded border">
+                  <span className="text-indigo-700">vSat = cal1_v</span>
+                </div>
+                <div className="text-xs text-indigo-600 mt-1">
+                  Menggunakan satu titik kalibrasi (udara jenuh)
+                </div>
+              </div>
+
+              {/* Two Point Mode */}
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded">
+                <div className="font-medium text-purple-800 mb-2">Two Point Mode:</div>
+                <div className="text-sm font-mono bg-white p-2 rounded border">
+                  <span className="text-purple-700">
+                    vSat = cal1_v + ((T - cal1_t) × (cal2_v - cal1_v)) ÷ (cal2_t - cal1_t)
+                  </span>
+                </div>
+                <div className="text-xs text-purple-600 mt-1">
+                  Interpolasi linear antara dua titik kalibrasi
+                </div>
+              </div>
+
+              {/* Current Calculation Preview */}
+              {(point1 || calibrationMode === 'single') && (
+                <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <div className="font-medium text-gray-800 mb-2">Perhitungan saat ini:</div>
+                  {calibrationMode === 'single' ? (
+                    <div className="text-sm">
+                      <span className="text-gray-600">vSat = </span>
+                      <span className="font-mono text-blue-700">{currentVoltage.toFixed(2)} mV</span>
+                      <span className="text-gray-600"> (single point)</span>
+                    </div>
+                  ) : point1 && point2 ? (
+                    <div className="text-sm space-y-1">
+                      <div>
+                        <span className="text-gray-600">vSat = </span>
+                        <span className="font-mono text-purple-700">
+                          {point1.voltage.toFixed(2)} + (({currentTemp.toFixed(1)} - {point1.temp.toFixed(1)}) × ({point2.voltage.toFixed(2)} - {point1.voltage.toFixed(2)})) ÷ ({point2.temp.toFixed(1)} - {point1.temp.toFixed(1)})
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">vSat = </span>
+                        <span className="font-mono text-green-700">
+                          {(point1.voltage + ((currentTemp - point1.temp) * (point2.voltage - point1.voltage)) / (point2.temp - point1.temp)).toFixed(2)} mV
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      Menunggu point kalibrasi...
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Final Calculation Summary */}
+            {(point1 || calibrationMode === 'single') && (
+              <div className="p-4 bg-white rounded-lg border border-emerald-200">
+                <div className="text-lg font-bold text-gray-800 mb-3">
+                  5. Hasil Perhitungan Final
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-gray-600">Uncalibrated:</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {uncalibratedDO.toFixed(3)} mg/L
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Calibrated:</div>
+                    <div className="text-2xl font-bold text-emerald-600">
+                      {calibratedDO.toFixed(3)} mg/L
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-gray-500">
+                  Range: 0-20 mg/L (constrained automatically)
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

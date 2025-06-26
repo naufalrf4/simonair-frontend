@@ -53,6 +53,7 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
   const [customPH, setCustomPH] = useState('');
   const [bufferPoints, setBufferPoints] = useState<Array<{pH: number, voltage: number}>>([]);
   const [calibrationResult, setCalibrationResult] = useState<{m: number, c: number} | null>(null);
+  const [showFormula, setShowFormula] = useState(false);
   
   const { currentVoltage, isConnected, publishCalibration, currentRaw } = useCalibration(deviceId, 'ph');
 
@@ -76,6 +77,8 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
   useEffect(() => {
     const result = calculateRegression(bufferPoints);
     setCalibrationResult(result);
+    // Show formula when we have calibration data
+    setShowFormula(!!result);
   }, [bufferPoints]);
 
   // Calculate R-squared (correlation coefficient)
@@ -162,146 +165,93 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
           Kalibrasi Sensor pH
         </h3>
         <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-          Minimal 2 titik kalibrasi diperlukan untuk akurasi optimal. 
-          Sistem akan menghitung persamaan regresi linear secara otomatis.
+          Minimal 2 titik kalibrasi diperlukan untuk akurasi optimal
         </p>
       </div>
 
       {/* Current Reading */}
       <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50">
-  <CardHeader className="pb-4">
-    <CardTitle className="text-lg flex items-center gap-2">
-      <TrendingUp className="h-5 w-5" />
-      Pembacaan Real-time
-    </CardTitle>
-  </CardHeader>
-  <CardContent>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Voltage Reading */}
-      <div>
-        <Label className="text-sm font-medium text-gray-600 mb-2 block">Voltage Sensor</Label>
-        <div className="text-3xl font-bold text-blue-700 mb-1">
-          {currentVoltage.toFixed(4)} V
-        </div>
-        <div className="text-xs text-gray-500">
-          Tegangan output sensor
-        </div>
-      </div>
-
-      {/* Raw Reading */}
-      <div>
-        <Label className="text-sm font-medium text-gray-600 mb-2 block">Nilai Raw</Label>
-        <div className="text-3xl font-bold text-cyan-700 mb-1">
-          {currentRaw?.toFixed(2) || '--'}
-        </div>
-        <div className="text-xs text-gray-500">
-          Pembacaan mentah ADC
-        </div>
-      </div>
-
-      {/* Connection Status */}
-      <div>
-        <Label className="text-sm font-medium text-gray-600 mb-2 block">Status Koneksi</Label>
-        <div className="flex items-center gap-3 mt-2">
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-          <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-            {isConnected ? 'Terhubung' : 'Terputus'}
-          </span>
-        </div>
-        <div className="text-xs text-gray-500 mt-1">
-          Update setiap detik
-        </div>
-      </div>
-    </div>
-
-    {/* Prediction & Metrics Section */}
-    {(calibrationResult || bufferPoints.length > 0) && (
-      <div className="mt-6 pt-4 border-t border-blue-200">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* pH Prediction */}
-          {calibrationResult && (
-            <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
-              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
-                Prediksi pH
-              </Label>
-              <div className="text-2xl font-bold text-purple-600 mb-1">
-                {(calibrationResult.m * currentVoltage + calibrationResult.c).toFixed(2)}
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Pembacaan Real-time
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Voltage Reading */}
+            <div>
+              <Label className="text-sm font-medium text-gray-600 mb-2 block">Voltage Sensor</Label>
+              <div className="text-3xl font-bold text-blue-700 mb-1">
+                {currentVoltage.toFixed(4)} V
               </div>
               <div className="text-xs text-gray-500">
-                pH = {calibrationResult.m.toFixed(3)} × V + {calibrationResult.c.toFixed(3)}
+                Tegangan output sensor
               </div>
             </div>
-          )}
-          
-          {/* Calibration Quality */}
-          {calibrationResult && bufferPoints.length >= 2 && (
-            <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
-              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
-                Kualitas Kalibrasi
-              </Label>
-              <div className="text-2xl font-bold text-green-600 mb-1">
-                {(rSquared * 100).toFixed(1)}%
-              </div>
-              <div className="text-xs text-gray-500">
-                R² = {rSquared.toFixed(4)} ({bufferPoints.length} titik)
-              </div>
-            </div>
-          )}
-          
-          {/* Buffer Points Count */}
-          {bufferPoints.length > 0 && !calibrationResult && (
-            <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
-              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
-                Titik Kalibrasi
-              </Label>
-              <div className="text-2xl font-bold text-amber-600 mb-1">
-                {bufferPoints.length} / 2
-              </div>
-              <div className="text-xs text-gray-500">
-                {bufferPoints.length < 2 ? 'Perlu titik tambahan' : 'Siap kalibrasi'}
-              </div>
-            </div>
-          )}
-          
-          {/* Voltage Range */}
-          {bufferPoints.length >= 2 && (
-            <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
-              <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
-                Range Voltage
-              </Label>
-              <div className="text-lg font-bold text-indigo-600 mb-1">
-                {Math.min(...bufferPoints.map(p => p.voltage)).toFixed(3)} - {Math.max(...bufferPoints.map(p => p.voltage)).toFixed(3)} V
-              </div>
-              <div className="text-xs text-gray-500">
-                pH {Math.min(...bufferPoints.map(p => p.pH))} - {Math.max(...bufferPoints.map(p => p.pH))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    )}
 
-    {/* Real-time Data Quality Indicator */}
-    <div className="mt-4 flex items-center justify-between text-xs">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-gray-500">
-          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-          <span>Data streaming aktif</span>
-        </div>
-        {bufferPoints.length > 0 && (
-          <div className="flex items-center gap-2 text-gray-500">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <span>{bufferPoints.length} titik tersimpan</span>
+            {/* Raw Reading */}
+            <div>
+              <Label className="text-sm font-medium text-gray-600 mb-2 block">Nilai Raw</Label>
+              <div className="text-3xl font-bold text-cyan-700 mb-1">
+                {currentRaw?.toFixed(2) || '--'}
+              </div>
+              <div className="text-xs text-gray-500">
+                Pembacaan mentah ADC
+              </div>
+            </div>
+
+            {/* Connection Status */}
+            <div>
+              <Label className="text-sm font-medium text-gray-600 mb-2 block">Status Koneksi</Label>
+              <div className="flex items-center gap-3 mt-2">
+                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                <span className={`text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                  {isConnected ? 'Terhubung' : 'Terputus'}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Update setiap detik
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-      <div className="text-gray-400">
-        Last update: {new Date().toLocaleTimeString('id-ID')}
-      </div>
-    </div>
-  </CardContent>
-</Card>
 
+          {/* Prediction & Metrics Section */}
+          {showFormula && calibrationResult && (
+            <div className="mt-6 pt-4 border-t border-blue-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* pH Prediction */}
+                <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
+                  <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
+                    Prediksi pH
+                  </Label>
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {(calibrationResult.m * currentVoltage + calibrationResult.c).toFixed(2)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    pH = {calibrationResult.m.toFixed(3)} × V + {calibrationResult.c.toFixed(3)}
+                  </div>
+                </div>
+                
+                {/* Calibration Quality */}
+                {bufferPoints.length >= 2 && (
+                  <div className="p-3 bg-white/70 rounded-lg border border-blue-100">
+                    <Label className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1 block">
+                      Kualitas Kalibrasi
+                    </Label>
+                    <div className="text-2xl font-bold text-green-600 mb-1">
+                      {(rSquared * 100).toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      R² = {rSquared.toFixed(4)} ({bufferPoints.length} titik)
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Calibration Instructions */}
       <Card className="border-indigo-200 bg-indigo-50">
@@ -429,7 +379,7 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
       )}
 
       {/* Linear Regression Display */}
-      {calibrationResult && bufferPoints.length >= 2 && (
+      {showFormula && calibrationResult && bufferPoints.length >= 2 && (
         <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -503,22 +453,6 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
                 </div>
               </div>
             </div>
-
-            {/* Technical Explanation */}
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <div className="font-medium text-blue-800 mb-2">
-                  Penjelasan Regresi Linear
-                </div>
-                <div className="text-blue-700 space-y-1">
-                  <p>• <strong>Slope (m)</strong>: Menunjukkan seberapa sensitif sensor terhadap perubahan pH</p>
-                  <p>• <strong>Intercept (c)</strong>: Offset kalibrasi sensor pada kondisi referensi</p>
-                  <p>• <strong>R²</strong>: Mengukur seberapa baik garis regresi menjelaskan data (0-1, semakin tinggi semakin baik)</p>
-                  <p>• <strong>R² &gt; 0.99</strong>: Kalibrasi excellent, <strong>R² &gt; 0.95</strong>: Good, <strong>R² &lt; 0.95</strong>: Perlu titik tambahan</p>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       )}
@@ -532,8 +466,7 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
               Titik Kalibrasi Belum Cukup
             </div>
             <div className="text-amber-700">
-              Tambahkan minimal 1 titik lagi untuk menghitung regresi linear yang akurat. 
-              Disarankan menggunakan buffer dengan nilai pH yang berbeda jauh untuk hasil optimal.
+              Tambahkan minimal 1 titik lagi untuk menghitung regresi linear yang akurat
             </div>
           </div>
         </div>
@@ -547,7 +480,7 @@ const PHCalibration: React.FC<PHCalibrationProps> = ({
               Kualitas Kalibrasi Rendah (R² = {rSquared.toFixed(3)})
             </div>
             <div className="text-orange-700">
-              Pertimbangkan untuk menambah titik kalibrasi atau periksa stabilitas pembacaan sensor.
+              Pertimbangkan untuk menambah titik kalibrasi atau periksa stabilitas pembacaan sensor
             </div>
           </div>
         </div>

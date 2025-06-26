@@ -56,7 +56,7 @@ const RECOMMENDED_THRESHOLDS = {
 const SENSOR_CONFIGS = {
   ph: {
     icon: 'droplets',
-    title: 'pH Threshold',
+    title: 'Ambang Batas pH',
     unit: '',
     color: 'border-blue-200 bg-blue-50',
     recommended: RECOMMENDED_THRESHOLDS.ph,
@@ -64,7 +64,7 @@ const SENSOR_CONFIGS = {
   },
   tds: {
     icon: 'zap',
-    title: 'TDS Threshold',
+    title: 'Ambang Batas TDS',
     unit: 'ppm',
     color: 'border-yellow-200 bg-yellow-50',
     recommended: RECOMMENDED_THRESHOLDS.tds,
@@ -72,7 +72,7 @@ const SENSOR_CONFIGS = {
   },
   do: {
     icon: 'fish',
-    title: 'DO Threshold',
+    title: 'Ambang Batas DO',
     unit: 'mg/L',
     color: 'border-green-200 bg-green-50',
     recommended: RECOMMENDED_THRESHOLDS.do,
@@ -80,7 +80,7 @@ const SENSOR_CONFIGS = {
   },
   temp: {
     icon: 'thermometer',
-    title: 'Temperature Threshold',
+    title: 'Ambang Batas Suhu',
     unit: '°C',
     color: 'border-red-200 bg-red-50',
     recommended: RECOMMENDED_THRESHOLDS.temp,
@@ -305,7 +305,7 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
         console.log('✅ MQTT Connected for offset configuration');
         setMqttStatus('connected');
         
-        const topic = `elsaiot/${deviceId}/offset`;
+        const topic = `simonair/${deviceId}/offset`;
         const payload = JSON.stringify({ threshold });
         
         client.publish(topic, payload, { qos: 1 }, (error) => {
@@ -364,7 +364,7 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-3">
             <Sliders className="h-6 w-6 text-purple-600" />
-            Konfigurasi Threshold Sensor
+            Konfigurasi Ambang Batas Sensor
             <Badge variant="outline" className="ml-2">
               {currentDeviceData?.nama || deviceId}
             </Badge>
@@ -409,13 +409,13 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
             <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
               <div className="font-medium text-blue-800 mb-2">
-                Panduan Konfigurasi Threshold
+                Panduan Konfigurasi Ambang Batas
               </div>
               <div className="text-blue-700 space-y-1">
-                <p>• <strong>Minimum:</strong> Nilai batas bawah sensor (GOOD jika ≥ min)</p>
-                <p>• <strong>Maksimum:</strong> Nilai batas atas sensor (GOOD jika ≤ max)</p>
-                <p>• <strong>Status BAD:</strong> Jika nilai sensor di luar rentang min-max</p>
-                <p>• <strong>Kosongkan:</strong> Jika tidak ingin mengatur threshold untuk sensor tertentu</p>
+                <p>• <strong>Minimum:</strong> Nilai batas bawah sensor (NORMAL jika ≥ min)</p>
+                <p>• <strong>Maksimum:</strong> Nilai batas atas sensor (NORMAL jika ≤ max)</p>
+                <p>• <strong>Status Diluar Ambang Batas:</strong> Jika nilai sensor di luar rentang min-max</p>
+                <p>• <strong>Kosongkan:</strong> Jika tidak ingin mengatur ambang batas untuk sensor tertentu</p>
               </div>
             </div>
           </div>
@@ -438,7 +438,7 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
                       </div>
                       {hasValues && (
                         <Badge variant="secondary" className="text-xs">
-                          Configured
+                          Dikonfigurasi
                         </Badge>
                       )}
                     </CardTitle>
@@ -567,7 +567,7 @@ const OffsetModal: React.FC<OffsetModalProps> = ({
                   Konfigurasi Berhasil Dikirim!
                 </div>
                 <div className="text-green-700">
-                  Threshold sensor telah dikirim ke perangkat <strong>{deviceId}</strong>.
+                  Ambang batas sensor telah dikirim ke perangkat <strong>{deviceId}</strong>.
                   Perangkat akan menggunakan nilai ini untuk menentukan status sensor.
                 </div>
               </div>

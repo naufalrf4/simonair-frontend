@@ -1,21 +1,48 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface StatusDotProps {
   online: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  showPulse?: boolean;
 }
 
-const StatusDot: React.FC<StatusDotProps> = ({ online }) => {
+const StatusDot: React.FC<StatusDotProps> = ({ 
+  online, 
+  size = 'md',
+  showPulse = true 
+}) => {
+  const sizeClasses = {
+    sm: 'w-2 h-2',
+    md: 'w-3 h-3',
+    lg: 'w-4 h-4'
+  };
+
+  const pulseClasses = {
+    sm: 'w-2 h-2',
+    md: 'w-3 h-3', 
+    lg: 'w-4 h-4'
+  };
+
   return (
-    <div className="relative">
+    <div className="relative flex items-center justify-center">
       <div 
-        className={`w-3 h-3 rounded-full ${
+        className={cn(
+          "rounded-full shadow-lg transition-all duration-300",
+          sizeClasses[size],
           online 
-            ? 'bg-green-500 shadow-green-500/50' 
+            ? 'bg-emerald-500 shadow-emerald-500/50' 
             : 'bg-red-500 shadow-red-500/50'
-        } shadow-lg`}
+        )}
       />
-      {online && (
-        <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-75" />
+      {online && showPulse && (
+        <div 
+          className={cn(
+            "absolute rounded-full animate-ping opacity-75 transition-all duration-300",
+            pulseClasses[size],
+            'bg-emerald-500'
+          )}
+        />
       )}
     </div>
   );
